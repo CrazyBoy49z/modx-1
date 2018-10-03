@@ -1,0 +1,679 @@
+/*
+
+[[list? &parents=`` &elements=`` &tpl=`` &wrp=`` &orderby=`` &limit=``]]
+
+Если вызвается без параметров, то выводится список <ul><li><a>...
+
+parents = список родителей (через запятую ID)
+elements = список документов (через запятую ID)
+    если не указаны ни parents ни elements то будут выводиться дети текущего документа
+
+nelements = список документов, исключаемых из списка (через запятую ID)
+startid = Начинать выдачу с указанного ID документа (через +/- сдвиг по сортировке соответственно вверх и вниз, без пробелов в записи)
+stopid = Заканчивать выдачу на указанном ID документа (через +/- сдвиг по сортировке соответственно вверх и вниз, без пробелов в записи)
+
+tpl = шаблон одного элемента списка  
+    - $чанк, значения доступные через [[+pagetitle]], [[+tv.img]]
+    - HTML-код (если передан HTML, то вызывать list нужно строго без "!")
+    - !сниппет, значения доступны через $pagetitle, $tv['img']
+    
+    - если не передано или передано пустым, то выводится [[+content]]
+    - стандартные tpl:
+            &tpl=`<li>`  =>  <li class=".." data-id=".."><a href="..">[[+pagetitle]]</a></li>
+    
+wrp = шаблон обёртки списка
+    - имя $чанка или !сниппета или HTML-код (обязательно наличие тега [[+content]] и если передан HTML, то вызывать list нужно строго без "!")
+    - если не передано или передано пустое, то выводится [[+content]]
+    - стандартные wrp:
+            &wrp=`<ul>`  =>  <ul>[[+content]]</ul>
+    
+global = передача параметров в tpl и wrp, доступны через [[+global.a]]
+         В ФОРМАТЕ JSON ОБЯЗАТЕЛЬНО В ДВОЙНЫХ КАВЫЧКАХ: {"a":"123"}
+         стандартные свойства в global.***
+            documentsQnt = количество документов в полной выборке list
+
+nthchild = маркировка элементов классом list-nth по переданной формуле (множитель - n) (пример - 2*n+1)
+    также [[!list]] даёт классы list-first и list-last первому и последнему элементу соответственно
+    эти классы доступны в [[+list_class]]
+
+orderby = сортировка элементов, например id ASC (по умолчанию menuindex ASC)
+    можно передать любой элемент таблицы modx_site_content в качестве параметра для сортировки
+    если параметр передан пустым, то вывод будет в заданном порядке элементов &elements=`3,2,1`
+    
+limit = 0, 10 - сдвиг и лимит выборки
+
+pp = сниппет(ы) для последней постобработки данных ( в виде строки процессоров, разделенной запятыми )
+    Формат: menu:active_class=active,ppSnippet:prop1=val1:prop2=val2
+    Стандартные процессоры:
+        menu: вызов menu:active_class=active | по умолчанию active_class=active
+
+ignorehidemenustate = 1 - игнорировать галочку "Не показывать в меню"
+ignorepublishedstate = 1 - игнорировать статус опубликованности
+
+set404 = Отдать статус 404 если документы отсутствуют (1, 0, по умолчанию 0, при включенной пагинации по умолчанию 1)
+onpage = число элементов на странице, включает режим пагинации
+
+returnArray = 1 - возвращает PHP-массив, вместо скомпиленного html-кода
+
+ver 1.0 : Исходный сниппет
+ver 1.1 : Плейсхолдеры теперь сбрасываются после использования
+ver 1.2 : Добавлена проверка - в выдаче не учавствуют неопубликованные и удаленные (в корзину) материалы
+ver 1.3 : Пост процессоры в виде массива (строка процессоров, разделенная запятыми)
+ver 1.4 : Добавлена проверка - документы с установленной галочкой "не показывать в меню" игнорируются. Добавлен параметр ignorehidemenustate, отключающий данную проверку
+
+ОТСУТСТВИЕ СОВМЕСТИМОСТИ С ПРЕДЫДУЩИМИ ВЕРСИЯМИ!!! tv параметры доступны теперь через 'tv.' (было - 'tv-')
+ОТСУТСТВИЕ СОВМЕСТИМОСТИ С ПРЕДЫДУЩИМИ ВЕРСИЯМИ!!! параметр для передачи постпроцессоров - pp
+ОТСУТСТВИЕ СОВМЕСТИМОСТИ С ПРЕДЫДУЩИМИ ВЕРСИЯМИ!!! в постпроцессорах теперь доступны массивы данных каждого документа, возвращают измененный массив данных
+
+ver 1.5 : Отказ от парсинга, переход на другой способ обработки постпроцессорами, zc в параметрах, pp вместо processor, orderby по умолчанию - 'menuindex ASC'
+ver 1.6 : Если задан список элментов с пустым &orderby, то сортируем в порядке, как элементы указаны
+ver 1.7 : При обработке изображения image_processor'ом, в соответствующее tv значение пишется массив array("resized" => "", "original" => "")
+ver 1.8 : trim каждого элемента в значениях elements, parents
+ver 1.9 : в чанк передается параметр [[+list_class]], в который list пишет маркировку позиции элементов (list-fch - первый элемент, list-lch - последний элемент, list-mch - помеченный элемент), параметр nthch
+ver 1.10 : если не указан tpl или wrp - будут использованы стандартные li-a-wrp и li-a-tpl
+
+ver 2.0 : list отдает статус 404 если материалов нет (параметр set404), параметр onpage (режим эмуляции раздела с пагинацией)
+ver 2.1 : Постпроцессоры "в коробке"
+ver 2.2 : Фикс вывода неопубликованных материалов
+ver 2.3 : Параметр ignorepublishedstate
+ver 2.4 : Параметр nelements
+ver 2.5 : Разбор тегов modx в tv полях
+ver 2.6 : Передача параметров в постпроцессоры (например: menu:active_class=active:test=test2)
+ver 2.7 : Добавлен инкрементный счётчик [[+i]] в вывод
+ver 2.8 : Параметры start, end - ID материалов - маркеров начала вывода и его окончания
+ver 2.9 : Парамтер global - массив, который передаётся в tpl и wrp
+ver 2.10 : Переименованы входные параметры: nthch -> nthchild, start -> startid, end -> stopid, переименованы выдаваемые list-ом классы list-fch -> list-first, list-lch -> list-last, list-mch -> list-nth
+ver 2.11 : если &wrp=``, то выводится [[+content]], если wrp не задано, то выводится чанк [[$li-a-wrp]]
+ver 2.12 : возможность передавать HTML код в tpl, чанки теперь передаются через $chunk
+ver 2.13 : убрано встроенное в list преобразование картинок через image_processor
+
+ОТСУТСТВИЕ СОВМЕСТИМОСТИ С ПРЕДЫДУЩИМИ ВЕРСИЯМИ!!! чанки в tpl и wrp теперь передаются через $chunk
+
+ver 3.0 : Можно использовать чанки и сниппеты в качестве tpl и wrp, используя $ и ! перед именем, а также html код
+ver 3.1 : Постпроцессоры в коробке: menu, вызов &pp=`menu:active_class=active, класс доступен в чанке в [[+list_class]]
+ver 3.2 : Немного перепилены pp, убран метод ListPP::has
+ver 3.3 : В массив global.*** добавлена documentsQnt
+ver 3.4 : Убраны wrp и tpl по умолчанию, 
+            теперь если wrp передано пустым или не передано - будет выводится [[+content]]
+            аналогично с tpl - если tpl передано пустым или не передано - будет выводится [[+content]]
+          Добавлен словарь стандартных wrp и tpl, пока только "<ul>" и "<li>"
+          
+ver 4.0 : Добавлена возможность возвращать массив $objects в php с помощью returnArray=`1` для list-filter
+
+
+TODO:
+    какие еще постпроцессоры в коробке нужны?
+    ? = процессоры для обработки всех документов вместе
+    
+
+*/
+
+if(!class_exists("ListPP"))
+{
+    class ListPP
+    {
+        private static $instance;
+        public static function getInstance()
+        {
+            if(!self::$instance)
+            {
+                self::$instance = new self();
+            }
+            
+            return self::$instance;
+        }
+        
+        private function camelize($string)
+        {
+            return lcfirst(
+                implode(
+                    '',
+                    array_map(
+                        'ucfirst',
+                            array_map(
+                                'strtolower',
+                                    explode(
+                                        '_', $string)))));
+        }
+        
+/*
+        public static function has($postProcessorLine)
+        {
+            $instance = self::getInstance();
+            $parts = explode(":", $postProcessorLine);
+            $postProcessorName = $parts[0];
+            if(method_exists($instance, "processor".ucfirst($instance->camelize($postProcessorName))))
+            {
+                return true; 
+            }
+            else
+            {
+                global $modx;
+                foreach($modx->query("SELECT COUNT(*) FROM `modx_site_snippets` WHERE `name` = '{$postProcessorName}'") as $row)
+                {
+                    if($row[0] > 0) return true;
+                }
+            }
+            
+            return false;
+        }
+*/
+        
+        public static function runPostProcessor($postProcessorLine, $document)
+        {
+            $instance = self::getInstance();
+            $parts = explode(":", $postProcessorLine);
+            $postProcessorName = $parts[0];
+            $internalPPName = "processor".ucfirst($instance->camelize($postProcessorName));
+            array_shift($parts);
+            
+            $params = array();
+            if(!empty($parts))
+            {
+                foreach($parts as $part)
+                {
+                    $tmp = explode("=", $part);
+                    $params[$tmp[0]] = $tmp[1];
+                }
+            }
+            
+            if(method_exists($instance, $internalPPName))
+            {
+                return call_user_func_array(array($instance, $internalPPName), array($document, $params));
+            }
+            else
+            {
+                global $modx;
+                //$params['documentsQnt'] = count
+                return $modx->runSnippet($postProcessorName, array("document" => $document, "params" => $params));
+            }
+        }
+        
+        private function processorMenu($document, $params = array())
+        {
+            if(!isset($params['active_class']))
+            {
+                $params['active_class'] = 'active';
+            }
+            if(in_array($document['uri'], array("index", "index/"))) $document['uri'] = "";
+            $parts = explode("?", $_SERVER['REQUEST_URI']);
+            $curi = trim($parts[0], "/");
+            if($curi == "")
+            {
+                if($document['uri'] == "") $document['list_class'] = $params['active_class'];
+            }
+            else
+            {
+                $uri = !isset($document['tv']['link']) || (isset($document['tv']['link']) && $document['tv']['link'] == "") ? $document['uri'] : $document['tv']['link'];
+                //if(!strncmp(trim($uri, "/"), $curi, strlen($curi))) $document['list_class'] = $params['active_class'];
+                if(trim($uri, "/") == $curi) $document['list_class'] = $params['active_class'];
+            }
+            return $document;
+        }
+    }
+}
+
+//проверка входных параметров
+$pagen = false;
+if(isset($onpage))
+{
+    $pagen = true;
+    if(!isset($set404)) $set404 = '1';
+}
+
+if(!isset($set404)) $set404 = '0';
+
+// Стандартные tpl и wrp
+if(!isset($tpl) || $tpl == "")
+{
+    $tpl = "[[+content]]";
+}
+elseif (strtolower($tpl) === "<li>") 
+{
+    $tpl = "<li[[+list_class:notempty=` class=\"[[+list_class]]\"`]] data-id=\"[[+id]]\"><a href=\"/[[+uri]]\" title=\"[[+pagetitle]]\">[[+pagetitle]]</a></li>";
+}
+
+if(!isset($wrp) || $wrp == "")
+{
+    $wrp = "[[+content]]";
+} 
+elseif (strtolower($wrp) === "<ul>") 
+{
+    $wrp = "<ul>[[+content]]</ul>";
+}
+
+if(isset($parents) && !is_array($parents))
+{
+    $parents = explode(",", trim($parents, ', '));
+    foreach($parents as $k => $parent)
+    {
+        $parents[$k] = trim($parent);
+    }
+}
+
+if(isset($elements) && !is_array($elements))
+{
+    $elements = explode(",", trim($elements, ', '));
+    foreach($elements as $k => $element)
+    {
+        $elements[$k] = trim($element);
+    }
+}
+
+if(isset($pp) && !is_array($pp))
+{
+    $pp = explode(",", trim($pp, ", "));
+}
+
+if(!isset($orderby)) $orderby = "menuindex ASC";
+if(!isset($ignorepublished)) $ignorepublished = 0;
+
+if(!isset($global)) $global = array();
+else $global = json_decode($global, true);
+
+//получаем документы
+$arrWhere = array();
+
+if(!empty($parents) && $parents[0] != "")
+{
+    if(count($parents) == 1)
+    {
+        $arrWhere[] = "msc.parent = {$parents[0]}";
+    }
+    else
+    {
+        $arrWhere[] = "msc.parent IN(".implode(", ", $parents).")";
+    }
+}
+
+if(!empty($elements) && $elements[0] != "")
+{
+    if(count($elements) == 1)
+    {
+        $arrWhere[] = "msc.id = {$elements[0]}";
+    }
+    else
+    {
+        $arrWhere[] = "msc.id IN(".implode(", ", $elements).")";
+    }
+}
+
+if(empty($arrWhere))
+{
+    $arrWhere[] = "msc.parent = ".$modx->resourceIdentifier;
+}
+
+$strWhere = "(".implode(" OR ", $arrWhere).")";
+
+if(isset($nelements) && $nelements != "")
+{
+    $strWhere .= " AND msc.id NOT IN ({$nelements})";
+}
+
+if($ignorepublishedstate == 0)
+{
+    $strWhere .= "  AND msc.published = 1";
+}
+
+$strWhere .= " AND msc.deleted = 0";
+
+if(!(isset($ignorehidemenustate) && intval($ignorehidemenustate) == 1))
+{
+    $strWhere .= " AND msc.hidemenu <> 1";
+}
+
+$arrWhere = array();
+
+$tblStruct = array();
+$rs = $modx->query("SELECT * FROM modx_site_content LIMIT 1");
+foreach($rs as $row)
+{
+    foreach($row as $k => $v)
+    {
+        if(!is_numeric($k)) $tblStruct[] = $k;
+    }
+}
+
+foreach($tblStruct as $tblKey)
+{
+    switch($tblKey)
+    {
+        case "id":
+        case "parent":
+        case "template":
+        case "wrapper":
+            break;
+        default:
+            if(isset(${$tblKey}))
+            {
+                $arrWhere[] = "msc.{$tblKey} = '".(${$tblKey})."'";
+            }
+    }
+}
+
+if(!empty($arrWhere))
+{
+    $strWhere .= " AND ".implode(" AND ", $arrWhere);
+}
+
+
+$DOCSQL = "SELECT * FROM modx_site_content msc WHERE {$strWhere}";
+
+//сортировка
+
+if($orderby != "")
+    $DOCSQL .= ' ORDER BY msc.'.$orderby;
+
+
+//лимиты || пагинация
+
+if($pagen)
+{
+    if(isset($_GET['page']))
+    {
+        if(strval(intval($_GET['page'])) != $_GET['page']){
+            if($set404 == "1")
+            {
+                $modx->sendForward(9);
+            }
+            else
+            {
+                return "Неправильный параметр _GET[page]";
+            }
+        }
+    }
+    
+    $page = isset($_GET['page']) ? $_GET['page'] : 1;    
+    $DOCSQL .= " LIMIT ".(($page-1)*$onpage).", {$onpage}";
+}
+else
+{
+    if(isset($limit))
+    {
+        $DOCSQL .= " LIMIT {$limit}";
+    }
+}
+//echo ($DOCSQL);
+$rsDocuments = $modx->query($DOCSQL);
+
+$documents = array();
+foreach($rsDocuments as $document)
+{
+    foreach($document as $k => $v)
+    {
+        if(is_integer($k)) unset($document[$k]);
+    }
+    $documents[$document['id']] = $document;
+}
+
+if($set404 == '1' && count($documents) == 0) $modx->sendForward(9);
+//die(print_r($documents, true));
+// если задан список элментов с пустым &orderby - то сортируем в порядке, как элементы указаны
+if(isset($elements) && !empty($elements) && isset($orderby) && $orderby=='')
+{
+    $documentsTmp = array();
+    foreach($elements as $k)
+    {
+        $documentsTmp[$k] = $documents[$k];
+    }
+    $documents = $documentsTmp;
+}
+//получаем TV параметры
+
+$SQL = "SELECT mstv.`id`, mstv.`name`, mstv.`type`, mstcv.`value`, msc.`id` as contentid
+        FROM `modx_site_content` msc
+        LEFT JOIN `modx_site_tmplvar_templates` mstemtv ON mstemtv.`templateid` = msc.`template`
+        LEFT JOIN `modx_site_tmplvars` mstv ON mstv.`id` = mstemtv.`tmplvarid`
+        LEFT JOIN `modx_site_tmplvar_contentvalues` mstcv ON mstcv.`tmplvarid` = mstv.`id` AND mstcv.`contentid` = msc.`id`
+        WHERE msc.id IN(".implode(",",array_keys($documents)).")";
+//echo($SQL);
+$rsTVVals = $modx->query($SQL);
+$parser = $modx->getParser();
+foreach($rsTVVals as $tvval)
+{
+    if($tvval['value'] === NULL)
+        $tvval['value'] = '';
+    else
+        $parser->processElementTags('', $tvval['value'], false, false, '[[', ']]', array(), 10);
+    $documents[$tvval['contentid']]['tv'][$tvval['name']] = $tvval['value'];
+}
+//print_r($documents);// die();
+//startid и endid
+$keyStart = 1;
+if(isset($startid))
+{
+    $modif = false;
+    if(preg_match('/([0-9]+)([\+\-]{1})([0-9]+)/', $startid, $matches))
+    {
+        $startid = $matches[1];
+        $modif = array($matches[2], $matches[3]);
+    }
+    $r = array_search($startid, array_keys($documents));
+    if($r === false) 
+    {
+        $keyStart = 0;
+    }
+    else
+    {
+        $keyStart = $r+1;
+    }
+    if($modif !== false)
+    {
+        switch($modif[0])
+        {
+            case "+":
+                $keyStart += $modif[1];
+                if($keyStart > count($documents)) $keyStart = count($documents);
+                break;
+            case "-":
+                $keyStart -= $modif[1];
+                if($keyStart < 1) $keyStart = 1;
+                break;
+        }
+    }
+}
+
+$keyStop = count($documents);
+if(isset($stopid))
+{
+    $modif = false;
+    if(preg_match('/([0-9]+)([\+\-]{1})([0-9]+)/', $stopid, $matches))
+    {
+        $stopid = $matches[1];
+        $modif = array($matches[2], $matches[3]);
+    }
+    $r = array_search($stopid, array_keys($documents));
+    if($r === false) 
+    {
+        $keyStop = count($documents);
+    }
+    else
+    {
+        $keyStop = $r+1;
+    }
+    if($modif !== false)
+    {
+        switch($modif[0])
+        {
+            case "+":
+                $keyStop += $modif[1];
+                if($keyStop > count($documents)) $keyStop = count($documents);
+                break;
+            case "-":
+                $keyStop -= $modif[1];
+                if($keyStop < 1) $keyStop = 1;
+                break;
+        }
+    }
+}
+//var_dump($keyStart, $keyStop);
+
+$global = array_merge(array('documentsQnt' => count($documents)), $global);
+
+ob_start();
+$i = 0; $ishown = 0;
+//var_dump($documents); die;
+foreach($documents as $id => &$document)
+{
+    $i++;
+    if($i < $keyStart) continue; // пропускаем элементы до startid
+    if($i > $keyStop) break;     // заканчиваем цикл после stopid
+    $ishown++;
+    
+    $document['i'] = $ishown;
+    $document['i0'] = $ishown-1;
+    $document['global'] = $global;
+    $document['list_class'] = '';
+    
+    //Постпроцессоры
+    if(isset($pp) && !empty($pp))
+    {
+        foreach($pp as $p)
+        {
+            $documentPp = ListPP::runPostProcessor(trim($p, " "), $document);
+            if($documentPp !== false) // ListPP::has(trim($p, " "))
+            {
+                $document = $documentPp;
+            }
+        }
+    }
+    
+    // Маркировка элементов классами
+    if($id == array_shift(array_keys($documents)))
+    {
+        $document['list_class'] .= ($document['list_class']==""?"":" ")."list-first";
+    }
+    
+    if($id == array_pop(array_keys($documents)))
+    {
+        $document['list_class'] .= ($document['list_class']==""?"":" ")."list-last";
+    }
+    
+    if(isset($nthchild) && $nthchild != "")
+    {
+        for($j = 0; $j < count($documents); ++$j)
+        {
+            ob_start();           
+            eval("echo ".str_replace("n", "{$j}", $nthchild)." == {$ishown};");     
+            $rs = ob_get_clean();
+            if(trim($rs) == "1")
+            {
+                $document['list_class'] .= ($document['list_class']==""?"":" ")."list-nth";
+            }
+        }
+    }
+    
+    if($document['uri']=='index')
+        $document['uri'] = '';
+        
+    
+    if(substr($tpl, 0, 1) == "!") 
+    {
+        $document['html'] = $modx->runSnippet(substr($tpl, 1), $document);
+    } 
+    elseif(substr($tpl, 0, 1) == "$")
+    {
+        $document['html'] = $modx->getChunk(substr($tpl, 1), $document);
+    }
+    else
+    {
+        $chunk = $modx->newObject('modChunk', array('snippet' => $tpl));
+        $chunk->setCacheable(false);
+        $document['html'] = $chunk->process($document);
+    }
+    echo $document['html'];
+}
+unset($document);
+$content = ob_get_clean();
+
+ob_start();
+if($pagen)
+{
+    $count = 0;
+    $rsCountDocuments = $modx->query(preg_replace("/SELECT (.*) FROM/u", "SELECT COUNT(*) FROM", preg_replace("/ LIMIT (.*)$/", "", $DOCSQL)));
+    foreach($rsCountDocuments as $row)
+    {
+        $count = $row[0];
+    }
+    
+    $page = isset($_GET['page']) ? $_GET['page'] : 1;
+    $maxpage = ceil($count/$onpage);
+    
+    if($maxpage != 1)
+    {
+        $parts = explode("?", $_SERVER['REQUEST_URI']);
+        $uri = array_shift($parts);
+        
+        if($page > 1)
+        {
+            echo "<a href='{$uri}".($page == 2 ? "" : ("?page=".($page-1)))."' class='prev'><</a>";
+        }
+        
+        if($page > 3)
+        {
+            echo "<a href='{$uri}'>1</a>";
+        }
+        
+        if($page > 4)
+        {
+            echo "<span>...</span>";
+        }
+        
+        for($i = $page - 2; $i < $page + 3; ++$i)
+        {
+            if($i > 0 && $i <= $maxpage)
+            {
+                echo "<a href='{$uri}".($i == 1 ? "" : "?page={$i}")."'".($i == $page ? " class='a'" : "").">{$i}</a>";
+            }
+        }
+        
+        if($page < $maxpage - 3)
+        {
+            echo "<span>...</span>";
+        }
+        
+        if($page < $maxpage - 2)
+        {
+            echo "<a href='{$uri}?page={$maxpage}'>{$maxpage}</a>";
+        }
+        
+        if($page < $maxpage)
+        {
+            echo "<a href='{$uri}?page=".($page+1)."' class='next'>></a>";
+        }   
+    }
+}
+$paginationHTML = ob_get_clean();
+
+
+$arOutput = array(
+    "content" => $content,
+    "pagination" => $paginationHTML,
+    "global" => $global
+);
+
+
+if($returnArray == 1)
+{
+    $arOutput["documents"] = $documents;
+    return $arOutput;
+}
+
+
+if(!$arOutput['content']) return '';
+
+
+if(substr($wrp, 0, 1) == "!") 
+{
+    return $modx->runSnippet(substr($wrp, 1), $arOutput);
+} 
+elseif(substr($wrp, 0, 1) == "$")
+{
+    return $modx->getChunk(substr($wrp, 1), $arOutput);
+}
+else
+{
+    $chunk = $modx->newObject('modChunk', array('snippet' => $wrp));
+    $chunk->setCacheable(false);
+    return $chunk->process($arOutput);
+}
