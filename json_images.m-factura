@@ -1,0 +1,178 @@
+/*
+USAGE: 
+[[json_images? &docID=`[[*docID]]` &images=`[[*imgs]]` &type=`small` &typeID=`[[+global.typeID]]` ]]
+
+    v1.0 - исходная версия
+    
+    todo: чанки
+*/
+
+
+$imageSizes = array(
+                    // W, H, ZC
+    'small' => array(100, 75, 0),
+    'big'   => array(300, 300, 0),
+    'portfolio'   => array(580, 376, 1),
+    'portfolio-first'   => array(580, 376, 1),
+    'portfolio-small'   => array(40, 40, 1),
+);
+
+if(!function_exists('processImageJSON')){
+function processImageJSON($optionsIP) 
+{
+    $spath = "/template/cache/thumbs_json/{$optionsIP['folder']}/";
+    $newfilename = ($optionsIP['w']?$optionsIP['w']:'').'x'.($optionsIP['h']?$optionsIP['h']:'').'-'.md5(implode('-', $optionsIP)).'.jpg';
+    $newfilenamefullnoserver = $spath.$newfilename;
+    $newfilenamefull = $_SERVER["DOCUMENT_ROOT"].$newfilenamefullnoserver;
+    
+    if(is_file( $newfilenamefull ) && filemtime($newfilenamefull) > filemtime($_SERVER['DOCUMENT_ROOT']."/".$optionsIP['image']))
+    { 
+        return $newfilenamefullnoserver;
+    } 
+    else
+    {
+        global $modx;
+        return $modx->runSnippet("image_processor", $optionsIP);
+    }
+}}
+
+
+$arImages = json_decode($images, true);
+if(empty($arImages))
+{
+    $arImages = array(array("template/files/img/noimage.png", ''));
+};
+//d($arImages);
+
+//var_dump($arImages);
+
+foreach($arImages as $k => $arImage)
+{
+    //d($arImage, true);
+    $optionsIP = array(
+        "folder" => "json-".$type,
+        "image" => $arImage[0],
+        "w" => $imageSizes[$type][0],
+        "h" => $imageSizes[$type][1],
+        "zc" => $imageSizes[$type][2]
+    );
+    $image = processImageJSON($optionsIP);
+
+//    if($type == 'portfolio-first' && $k != 0) { continue; }
+    if($type == 'portfolio-first' && $k > 0) { continue; }
+//    if($type == 'portfolio-small' && $k == 0) { continue; }
+    
+    if($type == 'small')
+    {
+        ?>
+        <div class="product">
+            <img src="<?=$image?>" alt="[[*pagetitle]]" />
+        </div>
+        <?
+    }
+    
+    elseif($type == 'portfolio-first')
+    {
+//      <a href="/<?=$optionsIP["image"] ? > " class="our-portfolio__img" data-fancybox="[[+tv.project_type]]">
+//      var_dump($arImages);
+//      var_dump($arImage);
+//      var_dump($k);
+        
+        ?>
+            <a href="/<?=$arImages[0][0]?>" data-fancybox="<?=$typeID?>" class="our-portfolio__img" data-thumb="<?=$image?>">
+                <img src="<?=$image?>" alt="[[+pagetitle]]" title="[[+pagetitle]]">
+                <div class="our-portfolio-circles">
+                    <div class="our-portfolio-circles__item">
+                        <img src="/<?=$arImages[1][0]?>" alt="[[+pagetitle]]" title="[[+pagetitle]]" />
+                    </div>
+                    <div class="our-portfolio-circles__item">
+                        <img src="/<?=$arImages[2][0]?>" alt="[[+pagetitle]]" title="[[+pagetitle]]" />
+                    </div>
+                    <div class="our-portfolio-circles__item">
+                        <span> +<? echo count($arImages); ?></span>
+                    </div>
+                    <?
+                    echo count($arImages);
+                    for ($i = 1; $i < count($arImages); $i++) {?>
+                        <img src="/<?=$arImages[$i][0]?>" data-fancybox="<?=$typeID?>" alt="[[+pagetitle]]" title="[[+pagetitle]]" style="display:none" />
+                    <?
+                    }
+                    ?>
+                </div>
+            </a>
+        <?
+    }
+
+    else
+    {
+        // NO THUMBS: data-options='{"thumbs": { "autoStart": "false" } }'>
+        ?>
+        <div class="product">
+            <a href="/<?=$arImage[0]?>" class="imglink" data-fancybox="fancybox" data-thumb="<?=$image?>">
+                <img src="<?=$image?>" alt="[[*pagetitle]]" title="Увеличить" />
+            </a>
+        </div>
+        <?
+    }
+
+}
+
+
+return;
+
+
+if(!isset($limit)) $limit = count($images);
+switch($wrp)
+{
+    case "1":
+    case "2":
+        ob_start();
+        
+        for($i = 0; $i < $limit; ++ $i)
+        {
+            $resized = $modx->runSnippet('image_processor', array(
+                'image' => $images[$i][0], 
+                'w' => isset($fancybox) && $fancybox == '1' ? 552 : 138, 
+                'h' => isset($fancybox) && $fancybox == '1' ? 400 : 100, 
+                'folder' => 'polimers', 
+                'zc' => 1)
+            );
+            
+            if($wrp == 1)
+            {
+                $resized2 = $modx->runSnippet('image_processor', array(
+                    'image' => $images[$i][0], 
+                    'w' => 552, 
+                    'h' => 400, 
+                    'folder' => 'projects', 
+                    'zc' => 1)
+                );
+                
+                $hidden = $limit==1 ? ' style="display: none; ' : '';
+                $active = ($i==0 ? 'a' : '');
+                ?>
+                    <div<?=$hidden?> class="<?=$active?>"   <?=($i==($limit-1)?'data-noafter="'.$limit.'"':'')?>
+                                                data-more5="<?=($limit-5)?>"
+                                                data-more4="<?=($limit-4)?>"
+                                                data-more3="<?=($limit-3)?>" >
+                        <img data-index="<?=$i?>" data-bigThumb="<?=$resized2?>" data-bigImg="/<?=$images[$i][0]?>" src="<?=$resized?>" />
+                    </div>
+                <?
+            }
+            else
+            {
+                $fancyWithOnePhoto = $limit==1 ? ' data-fancybox=""' : '';
+                ?>
+                    <a<?=$fancyWithOnePhoto?> data-index="<?=$i?>" href="/<?=$images[$i][0]?>"><img src="<?=$resized?>" /></a>
+                <?
+            }
+        }
+        return ob_get_clean();
+        break;
+       
+    default:
+        break;
+        
+        
+        return ob_get_clean();
+}
