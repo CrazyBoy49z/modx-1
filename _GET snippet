@@ -1,0 +1,34 @@
+сниппет _GET
+
+/* 
+    USAGE [[_GET? &var=`sort` ]]
+*/
+return isset($_GET[$var]) ? trim($modx->quote($_GET[$var]), '\'') : '!UNDEFINED';
+
+
+-------------------------------------------
+шаблон с вызовом сниппета
+
+[[-!_GET? &var=`d`]]
+
+----
+
+[[!_GET:is=`1`:then=`
+    AAAA     
+`? &var=`d`]]
+
+-----
+
+[[-*id:is=`31`:then=`
+                    <h2>Оборудование для фрезеровки</h2>
+                        [[-!equipment? &parents=`29` &where=`msc.published = 1`]]
+                            [[list-new-09.2018? &elements=`[[*equipment]]` &tpl=`$frezerovka-oborud-tpl` &wrp=`` ]]
+                `:else=`` ]]
+                
+-------------------------------------------
+строка браузера:
+
+http://optimahold.ru/testget123?d=1
+
+-------------------------------------------
+
