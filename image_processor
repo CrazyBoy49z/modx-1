@@ -1,0 +1,153 @@
+/* USAGE: 
+[[image_processor? &folder=`object` &image=`[[*img]]` &q=`80` &w=`200` &h=`200` &zc=`0` &forcedelete=`0`]]
+
+function processImage($optionsIP) 
+{
+    $spath = "/template/cache/thumbs/{$optionsIP['folder']}/";
+    $newfilename = ($optionsIP['w']?$optionsIP['w']:'').'x'.($optionsIP['h']?$optionsIP['h']:'').'-'.md5(implode('-', $optionsIP)).'.jpg';
+    $newfilenamefullnoserver = $spath.$newfilename;
+    $newfilenamefull = $_SERVER["DOCUMENT_ROOT"].$newfilenamefullnoserver;
+    
+    if(is_file( $newfilenamefull ) && filemtime($newfilenamefull) > filemtime($_SERVER['DOCUMENT_ROOT']."/".$optionsIP['image']))
+    { 
+        return $newfilenamefullnoserver;
+    } 
+    else
+    {
+        global $modx;
+        return $modx->runSnippet("image_processor", $optionsIP);
+    }
+}
+
+$optionsIP = array(
+    "folder" => "shop-object",
+    "image" => $objectModification['img'],
+    "q" => 80,
+    "w" => $categoryImageSize[0],
+    "h" => $categoryImageSize[1],
+    "zc" => 0,
+    'forcedelete' => 0
+);
+processImage($optionsIP);
+
+VERSION HISTORY:
+
+ver 1.0 = исходный
+ver 1.1 = добавлено пропорциональное определение $w и $h при заданном $w или $h
+ver 1.2 = добавлено принудительное включение zc при автоопределении высоты\ширины
+ver 1.3 = все выходные файлы отдаются с расширением jpg
+ver 1.4 = прозрачность, рекурсивное создание папки для хранения сжатых картинок
+ver 1.5 = максимальная ширина и высота (mw и mh)
+ver 1.6 = автоматическое перегенерирование кеша
+ver 1.7 = фикс автообпределения $w и $h
+
+!!! ОТСУТСТВИЕ СОВМЕСТИМОСТИ !!!
+
+ver 2.0 =   генерация имени заменена на md5() от входных параметров
+            убран входной параметр $id
+            OLD: $newfilename = "s".($id?'-'.str_replace("/","-",$id):'').'-'.$filenameArr[0].'-'.$w.'-'.$h.($zc?'-'.$zc:'').'.jpg';
+
+TO DO:
+    работа с png
+    встроить в инжект стандартный noimage
+    написать инструкцию с параметрами как у list
+
+*/
+
+//$forcedelete = 1;
+
+$filenamefullnoserver = $image;
+
+$spath = "/template/cache/thumbs/{$folder}/";
+$newfilename = ($scriptProperties['w']?$scriptProperties['w']:'').'x'.($scriptProperties['h']?$scriptProperties['h']:'').'-'.md5(implode('-', $scriptProperties)).'.jpg';
+$newfilenamefullnoserver = $spath.$newfilename;
+$newfilenamefull = $_SERVER["DOCUMENT_ROOT"].$newfilenamefullnoserver;
+
+if(is_file( $newfilenamefull ) && filemtime($newfilenamefull) > filemtime($_SERVER['DOCUMENT_ROOT']."/".$image))
+{
+    return $newfilenamefullnoserver;   
+}
+
+// создаём папку для картинок
+if(!is_dir($_SERVER["DOCUMENT_ROOT"].$spath)) mkdir($_SERVER["DOCUMENT_ROOT"].$spath, 0777, true);
+
+
+// УБРАТЬ ЭТО
+$noimage = "/template/inject/noimage.png";
+if(!is_file($_SERVER['DOCUMENT_ROOT']."/".$noimage))
+    die("NO NOIMAGE FILE");
+
+
+
+// определяем входные параметры
+if(substr($image, 0, 1) == "/") $image = substr($image, 1);
+if(is_file($_SERVER['DOCUMENT_ROOT']."/".$image))
+{
+    if($h && !$w)
+    {
+        $imageSize = getimagesize($_SERVER['DOCUMENT_ROOT']."/".$image);
+        $w = floor($h * $imageSize[0] / $imageSize[1]);
+        
+        if(isset($mw) && $mw < $w)
+        {
+            $w = $mw;
+            $h = floor($w * $imageSize[1] / $imageSize[0]);
+        }
+        
+        $zc = 1;
+    }
+    
+    if($w && !$h)
+    {
+        $imageSize = getimagesize($_SERVER['DOCUMENT_ROOT']."/".$image);
+        $h = floor($w * $imageSize[1] / $imageSize[0]);
+        if(isset($mh) && $mh < $h)
+        {           
+            $h = $mh;
+            $w = floor($h * $imageSize[0] / $imageSize[1]);
+        }
+        
+        $zc = 1;
+    }
+}
+
+if(!$id) $id = 0;
+if(!$q) $q = 75;
+if(!$zc) $zc = 0; else $zc = 1;
+if(!$folder) $folder = "default";
+if($forcedelete == 1) $forcedelete = true; else $forcedelete = false;
+if(!$image || !is_file($_SERVER['DOCUMENT_ROOT']."/".$image)) return $modx->runSnippet("image_processor", array("image" => $noimage, "w" => $w, "h" => $h, "folder" => $folder, "forcedelete" => $forcedelete)); 
+
+if(!$w) $w = 100;
+if(!$h) $h = 100;
+
+$filenameArr = explode(".", substr($image, strrpos($image, "/") + 1)); 
+if(count($filename) > 2)
+{
+    $extension = array_pop($filenameArr);
+    $filenameArr = array(implode(".", $filenameArr), $extension);
+}
+
+
+
+// принудительное удаление
+if($forcedelete)
+    unlink($newfilenamefull);
+    
+
+// генерация картинки
+$options = array( "input" => $filenamefullnoserver, "options" => "&w=".$w."&h=".$h."&q=".$q."&f=jpeg&zc=".$zc ); 
+$phpthumbfile = $_SERVER["DOCUMENT_ROOT"].$modx->runSnippet("phpthumbof", $options); 
+$success = copy($phpthumbfile, $newfilenamefull) ? true : false;
+unlink($phpthumbfile);
+
+//d($filenamefullnoserver);
+
+if($success)
+{
+    return $newfilenamefullnoserver;
+}
+else 
+{
+    return "ERROR";
+}
