@@ -1,0 +1,245 @@
+/*
+USAGE: 
+[[json_images? &docID=`[[*docID]]` &images=`[[*imgs]]` &type=`small` ]]
+
+    v1.0 - исходная версия
+    
+    todo: чанки
+*/
+
+if($images == '' || $images=='[]'){
+    if($type == 'services-left' || $type == 'services-right' || $type == 'services-center')
+    {
+        $images = '[ ["!image/uslugi/inzhiniring/production__img-1.jpg",null],["!image/uslugi/inzhiniring/production__img-2.jpg",null],["!image/uslugi/inzhiniring/production__img-3.jpg",null] ]';    
+    }
+    if($type == 'big-content-image')
+    {
+        $images = '[ ["!image/uslugi/2-lazer-rezka/537a4ed47c58c.jpg",null] ]';
+    }
+}
+
+$imageSizes = array(
+                    // W, H, ZC
+    'small' => array(100, 75, 0),
+    'big'   => array(300, 300, 0),
+    'services-left' => array(378, 397, 1),
+    'services-right' => array(378, 397, 1),
+    'services-center' => array(193, 193, 1),
+    'index-primeri' => array(381, 254, 1),
+    'index-logos' => array(195, 55, 0),
+    'big-content-image' => array(960, 533, 1),
+    'stoimost-content-image' => array(500, 300, 1),
+    'cost-left' => array(378, 397, 1),
+    'prod-tpl' => array(350, 300, 1),
+    'about-content-image' => array(300, 300, 1),
+
+);
+
+if(!function_exists('processImageJSON')){
+function processImageJSON($optionsIP) 
+{
+    $spath = "/template/cache/thumbs_json/{$optionsIP['folder']}/";
+    $newfilename = ($optionsIP['w']?$optionsIP['w']:'').'x'.($optionsIP['h']?$optionsIP['h']:'').'-'.md5(implode('-', $optionsIP)).'.jpg';
+    $newfilenamefullnoserver = $spath.$newfilename;
+    $newfilenamefull = $_SERVER["DOCUMENT_ROOT"].$newfilenamefullnoserver;
+    
+    if(is_file( $newfilenamefull ) && filemtime($newfilenamefull) > filemtime($_SERVER['DOCUMENT_ROOT']."/".$optionsIP['image']))
+    { 
+        return $newfilenamefullnoserver;
+    } 
+    else
+    {
+        global $modx;
+        return $modx->runSnippet("image_processor", $optionsIP);
+    }
+}}
+
+
+$arImages = json_decode($images, true);
+if(empty($arImages))
+{
+    $arImages = array(array("template/files/img/noimage.png", ''));
+};
+
+// отрезаем последнюю чётную картинку от массива больших картинок
+if($type=='big-content-image' && count($arImages) % 2 == 0)
+{
+    array_pop($arImages);
+}
+
+// оставляем только 1 картинку
+$onlyOneImageArr = array();
+
+
+foreach($arImages as $k => $arImage)
+{
+    if(in_array($type, $onlyOneImageArr) && $k > 0)
+    {
+        break;
+    }
+    
+    if($type=='about-content-image' && $k > 0)
+    {
+        break;
+    }
+    
+    if($type == 'services-left' && $k != 0)
+    {
+        continue;
+    }
+    if($type == 'services-center' && $k != 1)
+    {
+        continue;
+    }
+    if($type == 'services-right' && $k != 2)
+    {
+        continue;
+    }
+    
+    
+    
+    //d($arImage, true);
+    $optionsIP = array(
+        "folder" => "json-".$type,
+        "image" => $arImage[0],
+        "w" => $imageSizes[$type][0],
+        "h" => $imageSizes[$type][1],
+        "zc" => $imageSizes[$type][2]
+    );
+    
+    if($type == "index-logos")
+    {
+        $optionsIP["q"] = 90;
+    }
+    
+    
+    $image = processImageJSON($optionsIP);
+
+    if($type == 'services-left' || $type == 'services-right' || $type == 'services-center')
+    {
+        ?>
+            <img src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+        <?
+    }
+    elseif($type == 'index-primeri')
+    {
+        if($k != 0 && $k % 6 == 0) 
+        {
+            ?>
+                </div>
+                <div class="photo-slider">
+            <?
+        }
+        ?>
+            <a href="/<?=$arImage[0]?>" class="photo-item" data-fancybox="index-primeri">
+                <img src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+            </a>
+        <?
+    }
+    elseif($type == 'index-logos')
+    {
+        ?>
+            <a href="#href" class="cooperation-company-list__img" style="cursor: default; ">
+                <img src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+            </a>
+        <?
+    }
+    elseif($type == 'big-content-image')
+    {
+        ?>
+        <div class="production-list__img<?=count($arImages)==1?" onlyOneImage":""?>">
+            <img src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+        </div>
+        <?
+    }
+    
+    elseif($type == 'prod-tpl')
+    {
+        ?>
+        <div class="prod-item">
+            <a href="/<?=$arImage[0]?>" data-fancybox="fancy<?=docID?>" data-thumb="<?=$image?>">
+                <img src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+            </a>
+        </div>
+        <?
+    }
+    
+    elseif($type == 'about-content-image')
+    {
+        ?>
+            <img class="about-content-image" src="<?=$image?>" alt="<?=$doctitle?>" title="<?=$doctitle?>" />
+        <?
+    }
+
+    else
+    {
+        ?>
+        <div class="product">
+            <a href="/<?=$arImage[0]?>" class="imglink" data-fancybox="fancy<?=docID?>" data-thumb="<?=$image?>">
+                <img src="<?=$image?>" alt="[[*pagetitle]]" title="Увеличить" />
+            </a>
+        </div>
+        <?
+    }
+
+}
+
+
+return;
+
+
+if(!isset($limit)) $limit = count($images);
+switch($wrp)
+{
+    case "1":
+    case "2":
+        ob_start();
+        
+        for($i = 0; $i < $limit; ++ $i)
+        {
+            $resized = $modx->runSnippet('image_processor', array(
+                'image' => $images[$i][0], 
+                'w' => isset($fancybox) && $fancybox == '1' ? 552 : 138, 
+                'h' => isset($fancybox) && $fancybox == '1' ? 400 : 100, 
+                'folder' => 'polimers', 
+                'zc' => 1)
+            );
+            
+            if($wrp == 1)
+            {
+                $resized2 = $modx->runSnippet('image_processor', array(
+                    'image' => $images[$i][0], 
+                    'w' => 552, 
+                    'h' => 400, 
+                    'folder' => 'projects', 
+                    'zc' => 1)
+                );
+                
+                $hidden = $limit==1 ? ' style="display: none; ' : '';
+                $active = ($i==0 ? 'a' : '');
+                ?>
+                    <div<?=$hidden?> class="<?=$active?>"   <?=($i==($limit-1)?'data-noafter="'.$limit.'"':'')?>
+                                                data-more5="<?=($limit-5)?>"
+                                                data-more4="<?=($limit-4)?>"
+                                                data-more3="<?=($limit-3)?>" >
+                        <img data-index="<?=$i?>" data-bigThumb="<?=$resized2?>" data-bigImg="/<?=$images[$i][0]?>" src="<?=$resized?>" />
+                    </div>
+                <?
+            }
+            else
+            {
+                $fancyWithOnePhoto = $limit==1 ? ' data-fancybox=""' : '';
+                ?>
+                    <a<?=$fancyWithOnePhoto?> data-index="<?=$i?>" href="/<?=$images[$i][0]?>"><img src="<?=$resized?>" /></a>
+                <?
+            }
+        }
+        return ob_get_clean();
+        break;
+       
+    default:
+        break;
+        
+        
+        return ob_get_clean();
+}
