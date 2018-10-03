@@ -14,17 +14,20 @@ return isset($_GET[$var]) ? trim($modx->quote($_GET[$var]), '\'') : '!UNDEFINED'
 ----
 
 [[!_GET:is=`1`:then=`
-    AAAA     
-`? &var=`d`]]
+    [[*id:is=`115`:then=`
+                <h2>Оборудование для фрезеровки</h2>
+                [[-list-new-09.2018? &elements=`[[*equipment]]` &tpl=`$frezerovka-oborud-tpl` &wrp=`` ]]
+    `:else=`` ]]
+`:else=``? &var=`d` ]]
 
 -----
 
-[[-*id:is=`31`:then=`
+[[-*id:is=`115`:then=`
                     <h2>Оборудование для фрезеровки</h2>
                         [[-!equipment? &parents=`29` &where=`msc.published = 1`]]
-                            [[list-new-09.2018? &elements=`[[*equipment]]` &tpl=`$frezerovka-oborud-tpl` &wrp=`` ]]
-                `:else=`` ]]
-                
+                            [[-list-new-09.2018? &elements=`[[*equipment]]` &tpl=`$frezerovka-oborud-tpl` &wrp=`` ]]
+    `:else=``? &var=`d` ]]
+    
 -------------------------------------------
 строка браузера:
 
