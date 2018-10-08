@@ -1,0 +1,23 @@
+<h1 id="anchor">Заголовок</h1>
+<!-- Здесь много много контента -->
+<p><a href="#anchor" class="topLink">К началу страницы</a></p>
+
+
+
+
+
+$(document).ready(function() {
+ 
+ 
+   $("a.topLink").click(function() {
+      $("html, body").animate({
+         scrollTop: $($(this).attr("href")).offset().top + "px"
+      }, {
+         duration: 500,
+         easing: "swing"
+      });
+      return false;
+   });
+ 
+ 
+});
