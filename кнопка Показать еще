@@ -1,12 +1,13 @@
+// блоки изначально скрыты
 $('.portfolio-content_fb .portfolio-item_fb').slice(0, 4).show()
-    $('.portfolio__btn_fb').on('click', function () {
-        $(this).toggleClass('active')
-        if ($(this).hasClass('active')) {
-            $(this).closest('.portfolio-content_fb').find('.portfolio-item_fb').slideDown(300)
-            $(this).text('Скрыть')
-        } else {
-            $(this).closest('.portfolio-content_fb').find('.portfolio-item_fb').slice(4).slideUp(300)
-            $(this).text('Показать ещё')
-        }
-    })
+$('.portfolio__btn_fb').on('click', function () {
+	$(this).toggleClass('active')
+	if ($(this).hasClass('active')) {
+		$(this).closest('.portfolio-content_fb').find('.portfolio-item_fb').slideDown(300)
+		$(this).text('Скрыть')
+	} else {
+		$(this).closest('.portfolio-content_fb').find('.portfolio-item_fb').slice(4).slideUp(300)
+		$(this).text('Показать ещё')
+	}
+})
 
