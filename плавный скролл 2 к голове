@@ -1,0 +1,59 @@
+$('#toTop').click(function() {
+        $('body,html').animate({scrollTop:0},800);
+    });
+    
+	
+	
+<div id="toTop">
+    <i class="icon-arrow-up"></i>
+</div>
+
+
+
+
+#toTop {
+	position: fixed;
+	right: 50px;
+	bottom: 50px;
+	width: 70px;
+	height: 70px;
+	background-color: #2C708C;
+	-webkit-border-radius: 50%;
+	border-radius: 50%;
+	cursor: pointer;
+	-webkit-transition: opacity .3s ease,display .1s ease;
+	-o-transition: opacity .3s ease,display .1s ease;
+	transition: opacity .3s ease,display .1s ease;
+	opacity: .5;
+	text-align: center;
+	padding: 25px 0;
+	z-index: 200;
+	display: none;
+}
+#toTop i {
+	display: block;
+	color: #fff;
+	-webkit-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+}
+.icon-arrow-up:before {
+	content: '\e800';
+}
+[class^="icon-"]:before, [class*=" icon-"]:before {
+	font-family: "fontello";
+	font-style: normal;
+	font-weight: 400;
+	speak: none;
+	display: inline-block;
+	text-decoration: inherit;
+	width: 1em;
+	margin-right: .2em;
+	text-align: center;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1em;
+	margin-left: .2em;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
