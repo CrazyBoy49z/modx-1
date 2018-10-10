@@ -1,0 +1,71 @@
+a.tkani-item.active {
+    display: block;
+}
+@media screen and (min-width: 1220px) {
+    a.tkani-item:nth-child(-n+5) {
+        display: block;
+    }
+}
+@media screen and (max-width: 1219px) and (min-width: 768px) {
+    a.tkani-item:nth-child(-n+4) {
+        display: block;
+    }
+}
+@media screen and (max-width: 767px) {
+    a.tkani-item:nth-child(-n+3) {
+        display: block;
+    }
+}
+
+
+@media screen and (min-width: 1220px) {
+    a.tkani-item:nth-child(5n+1), a.tkani-item:nth-child(5n+2) {
+        min-width: 450px;
+    }
+    a.tkani-item:nth-child(5n+3), a.tkani-item:nth-child(5n+4), a.tkani-item:nth-child(5n+5) {
+        max-width: 31.5%;;
+    }
+    a.tkani-item:nth-child(5n+1), a.tkani-item:nth-child(5n+3) {
+        margin-left: 0;
+    }
+    a.tkani-item:nth-child(5n+2), a.tkani-item:nth-child(5n+5) {
+        margin-right: 0;
+    }
+    a.tkani-item:nth-child(1), a.tkani-item:nth-child(2) {
+        margin-top: 0;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1219px) {
+    a.tkani-item:nth-child(2n+1) {
+        margin-left: 0;
+    }
+    a.tkani-item:nth-child(2n) {
+        margin-right: 0;
+    }
+    a.tkani-item:nth-child(1), a.tkani-item:nth-child(2) {
+        margin-top: 0;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    a.tkani-item:nth-child(1) {
+        margin-top: 0;
+    }
+}
+.tkani-item img {
+    min-width: 100%;
+}
+
+.tkani-brand {
+    width: 373px;
+    margin: 10px;
+}
+
+
+
+<div class="tkani-content">
+    [[json_images? &images=`[[*imgs]]` &type=`tkani-brand` ]]
+</div>
+
+
