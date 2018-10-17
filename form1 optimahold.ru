@@ -1,4 +1,4 @@
-// убедиться в наличии файла mail_sender (сниппет и ниипет)
+// убедиться в наличии файла mail_sender (сниппет и ниипет), а также файла phpmailer.php
 // убедиться в наличии сниппетов forms, form-ajax, 
 // создать фиктивный материал form-ajax с содержимым [[!form-ajax]] - вызов сниппета
 // создать в материалах дочерний документ "заказы из формы", ID будет прописан в "content_root" (forms)
@@ -63,12 +63,21 @@
 -----------------------------------------------------------------------------
 .services {
     position: relative;
-    background: url(../images/bg2.jpg) center top repeat-y;
+    background: #aaa center top repeat-y;
     padding: 63px 0 47px;
     text-align: center;
     z-index: 5;
 }
-
+.pageform a {
+    color: #666;
+}
+.pageform {
+    text-align: center;
+	min-height: 433px;
+}
+.pageform>h2 {
+    margin-bottom: 30px;
+}
 .inner_width {
     position: relative;
     max-width: 1170px;
@@ -76,7 +85,79 @@
     padding: 0 15px;
     margin: 0 auto;
 }
-
+button, input {
+    overflow: visible;
+}
+button, input {
+    font-family: inherit;
+	font-size: 100%;
+	line-height: 1.15;
+	margin: 0;
+}
+.pageform>ul {
+    text-align: left;
+    list-style: none;
+}
+.pageform>ul:before, .pageform>ul:after {
+    content: " ";
+	display: table;
+    clear: both;
+}
+.pageform>ul>li:nth-child(1), .pageform>ul>li:nth-child(2) {
+    width: 49%;
+	float: left;
+}
+.pageform>ul>li {
+	margin-left: 0;
+}
+.pageform>ul>li {
+    margin-left: 0;
+}
+.pageform>ul>li .name {
+    font: 17px/21px proxima,sans-serif;
+	color: #36365f;
+}
+.pageform>ul>li .inp-wrap {
+    margin-top: 11px;
+}
+.pageform>ul>li .inp-wrap input[type="text"] {
+    height: 50px;
+}
+.pageform>ul>li .inp-wrap input[type="text"], .pageform>ul>li .inp-wrap textarea {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	outline: 0;
+	background: #fff;
+	font: 16px/22px proxima,sans-serif;
+	color: #262626;
+	padding-left: 18px;
+	padding-right: 18px;
+	width: 100%;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	-webkit-border-radius: 25px;
+	border-radius: 25px;
+	border: 1px solid #fff;
+}
+.pageform>ul>li:nth-child(2) {
+    margin-left: 2%;
+}
+.pageform>ul>li .inp-wrap input[type="text"] {
+    height: 50px;
+}
+.pageform>ul>li:nth-child(3) {
+    padding-top: 26px;
+	float: none;
+	clear: both;
+}
+.pageform>ul>li .inp-wrap textarea {
+    height: 162px;
+	width: 100%;
+	padding-top: 18px;
+	resize: none;
+}
 .services .inner_width {
     z-index: 2;
 }
