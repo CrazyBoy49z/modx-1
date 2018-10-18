@@ -1,0 +1,399 @@
+if($_COOKIE['shiptorauth'] == 'zelzelzel' || $_POST['login'] == 'zelzelzel') setcookie("shiptorauth", "zelzelzel", time()+60*60*24*10);
+else die("<form method=\"POST\"><input name=\"login\" /><input type=\"submit\" /></form>");
+
+function pre($content = false, $var_dump = false, $return = false){
+    ob_start();
+    echo "<pre>";
+    if($content)
+    {
+        if(is_array($content))
+        {
+            if($var_dump)
+            {
+                var_dump($content);
+            }
+            else
+            {
+                print_r($content);
+            }
+        }
+        else
+        {
+            var_dump($content);
+        }
+        echo "</pre>";
+    }
+    if($return)
+    {
+        return ob_get_clean();   
+    }
+    else
+    {
+        echo ob_get_clean();
+    }
+}
+
+$objects = array();
+$tvid1 = 1;
+$tvid2 = 7;
+$tvid3 = 8;
+$tvid4 = 12;
+$tvid5 = 31;
+$tvid6 = 29;
+$sql = "SELECT c.`id`, c.`parent`, c.`uri`, c.`introtext`, c.`pagetitle`, t1.`value` as `img`, t2.`value` as `price`, t3.`value` as `priceold`, t4.`value` as `brand`, t5.`value` as `market`, t6.`value` as `gift` FROM `modx_site_content` c 
+LEFT JOIN `modx_site_content` p ON p.`id` = c.`parent`
+LEFT JOIN `modx_site_tmplvar_contentvalues` t1 ON t1.`contentid` = c.`id` AND t1.`tmplvarid` = '".$tvid1."' 
+LEFT JOIN `modx_site_tmplvar_contentvalues` t2 ON t2.`contentid` = c.`id` AND t2.`tmplvarid` = '".$tvid2."' 
+LEFT JOIN `modx_site_tmplvar_contentvalues` t3 ON t3.`contentid` = c.`id` AND t3.`tmplvarid` = '".$tvid3."' 
+LEFT JOIN `modx_site_tmplvar_contentvalues` t4 ON t4.`contentid` = c.`id` AND t4.`tmplvarid` = '".$tvid4."' 
+LEFT JOIN `modx_site_tmplvar_contentvalues` t5 ON t5.`contentid` = c.`id` AND t5.`tmplvarid` = '".$tvid5."' 
+LEFT JOIN `modx_site_tmplvar_contentvalues` t6 ON t6.`contentid` = c.`id` AND t6.`tmplvarid` = '".$tvid6."' 
+WHERE c.`template` = '5' AND c.`hidemenu`='0' AND c.`deleted`='0' AND c.`published`='1' AND p.`published` = '1' 
+AND t5.`value` = 'Да'
+ORDER BY c.`parent`, c.`menuindex`";
+//echo $sql;
+$replaceFrom = array(";", "\r", "\n", "\t");
+$replaceTo = array(",", " ", " ", " ");
+foreach ($modx->query($sql) as $k => $row)
+{
+    foreach($row as $k2 => $row2)
+    {
+        if(is_numeric($k2))
+        {
+            unset($row[$k2]);
+        }
+        else
+        {
+            $row[$k2] = str_replace($replaceFrom, $replaceTo, $row[$k2]);
+        }
+    }
+    $row['filter'] = !in_array(35, $modx->getParentIds($row['id']));
+    $objects[$row['id']] = $row;
+}
+
+/*
+*  СТРУКТУРУ ФАЙЛА YML СМ. В КОНЦЕ СНИППЕТА
+*/
+
+// ПЕРЕДЕЛАТЬ ВЫВОД ДЕТЕЙ ЧЕРЕЗ ЭТУ ФУНКЦИЮ (А В ИТОГЕ - ЗАДАВАТЬ ВСЕ ДЕРЕВО ЧЕРЕЗ МАССИВ)
+// создает элементы xml (детей)
+// возвращает массив переменных, по которым можно обратиться к каждому ребенку
+// $elements - массив названий элементов
+/*
+function appendChilds(DOMDocument $parent, array $elements = [], array $smth = []) 
+{
+    if (!isset($parent) {
+        $parent = 0;
+    }
+    if  isset($elements) && $parent!="" && $elements!="") {
+        foreach($elemnts as $element) {
+            echo 'null';
+            // WHAT'S NEXT?????????????
+        }
+    }
+}
+*/
+//pre($objects);
+/*
+
+// ПАМЯТКА
+$objects - массив из всех объектов, которые будут отправлены в прайс-лист
+поля:
+[id] => 74
+            [parent] => 41
+            [uri] => filtr-expert-m420.html
+            [introtext] => Фильтр Expert M420 обеспечивает очистку ... микроэлементного состава.
+            [pagetitle] => Фильтр Prio Новая Вода Expert M420
+            [img] => !image/content/novvoda/Expert_M410.png
+            [price] => 7030
+            [priceold] => 
+            [brand] => Prio Новая Вода
+            [market] => Да
+            [gift] => 
+            [filter] => 1
+
+*/
+
+// "шапка файла" 
+$doc = new DOMDocument('1.0', 'UTF-8');
+$doc -> formatOutput = true;
+
+// корневой элемент
+$yml_catalog = $doc -> appendChild($doc -> createElement('yml_catalog'));
+$yml_catalog -> appendChild($yml_attr = $doc -> createAttribute('date'));
+$yml_attr -> value = date('Y-m-d H:i');
+
+// описание магазина
+$shop = $yml_catalog -> appendChild($doc -> createElement('shop'));
+
+// короткое название магазина, как на сайте
+$name = $shop -> appendChild($doc -> createElement('name', 'zelfilter.ru'));
+
+// полное название магазина, не публикуется
+$company = $shop -> appendChild($doc -> createElement('company', 'zelfilter.ru'));
+
+// урл главной страницы магазина
+$url = $shop -> appendChild($doc -> createElement('url', 'http://www.zelfilter.ru'));
+
+// список валют магазина и их курсов
+$currencies = $shop -> appendChild($doc -> createElement('currencies'));
+$currency = $currencies -> appendChild($doc -> createElement('currency'));
+$currency -> appendChild($currencyID = $doc -> createAttribute('id'));
+$currency -> appendChild($currencyRate = $doc -> createAttribute('rate'));
+$currencyID -> value = 'RUR';
+$currencyRate -> value = '1';
+
+// категории
+$categories = $shop -> appendChild($doc -> createElement('categories'));
+$category1 = $categories -> appendChild($doc -> createElement('category', 'Все товары/Бытовая техника/Техника для дома/Фильтры и умягчители для воды'));
+$category2 = $categories -> appendChild($doc -> createElement('category', 'Все товары/Бытовая техника/Техника для дома/Аксессуары/Аксессуары для водяных фильтров/Картриджи и сменные элементы для фильтров'));
+$category1 -> appendChild($catId_1 = $doc -> createAttribute('id'));
+$category2 -> appendChild($catId_2 = $doc -> createAttribute('id'));
+$catId_1 -> value = '1';
+$catId_2 -> value = '2';
+
+// условия доставки
+// этот блок указывается также внутри каждого offer
+$deliveries = $shop -> appendChild($doc -> createElement('delivery-options'));
+$option = $deliveries -> appendChild($doc -> createElement('option'));
+$option -> appendChild($delivery_cost = $doc -> createAttribute('cost'));
+$delivery_cost -> value = '0';
+$option -> appendChild($delivery_days = $doc -> createAttribute('days'));
+$delivery_days -> value = '1-3';
+$option -> appendChild($delivery_order = $doc -> createAttribute('order-before'));
+$delivery_order -> value = '21';
+
+
+// список предложений магазина
+$offers = $shop -> appendChild($doc -> createElement('offers'));
+
+// вывод информации по каждому товару
+foreach($objects as $object){
+
+    // ид товара, статус товара (true - готов/в наличии, false - на заказ)
+    $offer = $offers -> appendChild($doc -> createElement('offer'));
+    $offer -> appendChild($offer_id = $doc -> createAttribute('id'));
+    $offer_id -> value = $object['id'];
+    $offer -> appendChild($offer_available = $doc -> createAttribute('available'));
+    $offer_available -> value = 'true';
+    
+    // урл товара, цена, модель, производитель, артикул, валюта, изображение
+    $offer_url = $offer -> appendChild($doc -> createElement('url', 'http://www.zelfilter.ru/' . $object['uri']));
+    $offer_price = $offer -> appendChild($doc -> createElement('price', $object['price']));
+    $offer_model = $offer -> appendChild($doc -> createElement('model', $object['pagetitle']));
+    $offer_vendor = $offer -> appendChild($doc -> createElement('vendor', $object['brand']));
+    $offer_vendorcode = $offer -> appendChild($doc -> createElement('vendorCode', $object['id'] . strlen($object['brand'])));
+    $offer_curID = $offer -> appendChild($doc -> createElement('currencyId', 'RUR'));
+    $offer_img = $offer -> appendChild($doc -> createElement('picture', 'http://www.zelfilter.ru/' . $object['img']));
+    
+    // категория товара 1 (фильтр) или 2 (расходник)
+    $offer_category = $offer -> appendChild($doc -> createElement('categoryId', $object['filter']==1 ? '1' : '2'));
+    
+    // false - товар нельзя купить без предзаказа
+    $offer_store = $offer -> appendChild($doc -> createElement('store', 'false'));
+    
+    // самовывоз, доставка курьером
+    $offer_pickup = $offer -> appendChild($doc -> createElement('pickup', 'true'));
+    $offer_delivery = $offer -> appendChild($doc -> createElement('delivery', 'true'));
+    
+    // опции доставки: стоимость, кол-во дней, время до которого действует срок доставки
+    $offer_deliveries = $offer -> appendChild($doc -> createElement('delivery-options'));
+    $offer_option = $offer_deliveries -> appendChild($doc -> createElement('option'));
+    $offer_option -> appendChild($offer_delivery_cost = $doc -> createAttribute('cost'));
+    $offer_delivery_cost -> value = '0';
+    $offer_option -> appendChild($offer_delivery_days = $doc -> createAttribute('days'));
+    $offer_delivery_days -> value = '1-3';
+    $offer_option -> appendChild($offer_delivery_order = $doc -> createAttribute('order-before'));
+    $offer_delivery_order -> value = '21';
+    
+    // название товара (оно же модель товара)
+    $offer_name = $offer -> appendChild($doc -> createElement('name', $object['pagetitle']));
+
+    // описание товара
+    $offer_descr = $offer -> appendChild($doc -> createElement('description'));
+    $offer_cdata = $offer_descr -> appendChild($doc -> createCDATASection('<p>' . $object['introtext'] . '</p>'));
+    
+    // условия продажи товара, гарантии производителя, страна производителя
+    $offer_sales_notes = $offer -> appendChild($doc -> createElement('sales_notes', 'Оплата при получении. Самовывоз. Скидки. Подарки!'));
+    $manufacturer_warranty = $offer -> appendChild($doc -> createElement('manufacturer_warranty', 'true'));
+    $offer_country = $offer -> appendChild($doc -> createElement('country_of_origin', 'Russia'));
+    
+    
+//pre($object);
+    
+    
+    
+
+}
+
+
+// создаем переменные по названиям элементов дерева
+/*
+    $csvfile = "id;category;vendor;vendorcode;name;price;url;picture;description;currencyId;available;store;pickup;delivery;fee;sales_notes";
+    $csvfile = explode(';', $csvfile);
+    $csvfile = array_combine($csvfile, $csvfile);
+    extract($csvfile, EXTR_PREFIX_ALL, 'csv');
+    */
+/*
+    $arr = get_defined_vars();
+    echo '<pre>';
+    print_r($arr);
+    echo '</pre>';
+    die;
+*/
+//echo '<br>';
+
+// создаем элементы дерева и присваиваем их переменным (с префиксом csv_)
+/*
+foreach($csvfile as $key => $element) {
+    $$key = $doc -> createElement($element);
+}
+*/
+
+
+
+
+
+// формируем дерево из готовых элементов
+
+
+
+
+
+/* класс DOMDocument
+$shelves = $doc->appendChild($doc -> createElement('shelves'));
+$book = $shelves->appendChild($doc -> createElement('book'));
+
+
+$shelves_attr = $shelves -> appendChild($doc -> createAttribute('name-id'));
+$shelves_attr -> value = 'nichegosebefamiliya';
+
+$title = $book -> appendChild($doc->createElement('title', 'It\'s a header too!'));
+$title -> appendChild($doc -> createTextNode(' This is header'));
+
+$cstring = '<p>Все товары/Бытовая техника/Техника для дома/Фильтры и умягчители для воды</p>';
+$cdata = $shelves -> appendChild($doc -> createCDATASection($cstring));
+*/
+
+
+$doc->saveXML() . "\n";
+//echo '<pre>';
+//var_dump ($doc);
+//echo '</pre>';
+echo "Прайс-лист создан. Количество символов: " . $doc -> save($_SERVER['DOCUMENT_ROOT'].'/market-denis.xml') . '<br>';
+echo "Количество товаров: " . count($objects) . '<br>';
+
+
+
+
+
+/*
+//$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/market-denis.xml', "w+"); fwrite($fp, $doc); fclose($fp);
+
+$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/market-denis.csv', "w+"); fwrite($fp, $csv); fclose($fp);
+
+*/
+echo '<head><title>Market generator</title></head><body><a href="/market-denis.xml" download="" target="_blank">Скачать</a><br /><pre>'.$csv.'</pre></body>';
+
+die();
+
+
+
+
+
+/*OLD VERSION
+    $csvobject = '';
+    //$csvobject .= strlen($object['gift'])." | ".$object['gift']."\t\t\t\t\t\t\t\t\t\t".;
+
+    // id
+    $csvobject .= $object['id'].";";
+    
+    // pagetitle aka name
+    $csvobject .= str_replace("\"", "", $object['pagetitle']).";";
+    
+    // category
+    $csvobject .= ($object['filter']? 
+    'Все товары/Бытовая техника/Техника для дома/Фильтры и умягчители для воды'
+    :
+    'Все товары/Бытовая техника/Техника для дома/Аксессуары/Аксессуары для водяных фильтров/Картриджи и сменные элементы для фильтров')
+    .";";
+    
+    // brand aka vendor
+    $csvobject .= $object['brand'].";";
+    
+    // xxx aka ARTICUL? VENDORCODE???
+    $csvobject .= "NEWVALUE;";
+    
+    // price
+    $csvobject .= $object['price'].";";
+    //$csvobject .= "1".";"; // enable_auto_discounts
+    
+    // url of product
+    $csvobject .= "http://www.zelfilter.ru/".urlencode($object['uri']).";";
+    
+    // url of image
+    $csvobject .= "http://www.zelfilter.ru/".str_replace(array("%2F", "+", "%21"), array("/", "%20", "!"), urlencode($object['img'])).";";
+    
+    /*
+    if(strlen($object['introtext']) > 145){
+        $goodlength = strpos($object['introtext'], " ", 140);
+        $description = substr($object['introtext'], 0, $goodlength);
+    }
+    */
+/*OLD VERSION   
+    // introtext aka description
+    $csvobject .= str_replace("\"", "", $object['introtext']).";";
+    
+    // currencyId; available; store; pickup; delivery; manufacturer_warranty; country_of_origin
+    $csvobject .= "RUR;true;false;false;true;true;Россия"; //{$fee};
+    
+    // sales_notes
+    $csvobject .= ";Оплата при получении. Самовывоз. Скидки. Подарки!";
+    
+    //$csvobject .= ";".$object['gift'];
+    $csvobjects[] = $csvobject;
+}
+
+
+
+//$csv = "id;type;available;delivery;pickup;store;url;typePrefix;vendor;model;category;price;oldprice;currencyId;picture;description;param;sales_notes;manufacturer_warranty;country_of_origin;barcode;cpa;bid;cbid;fee".PHP_EOL
+// fee 
+//sales_notes
+// enable_auto_discounts
+$csv = "id;name;category;vendor;xx;price;url;picture;description;currencyId;available;store;pickup;delivery;manufacturer_warranty;country_of_origin;sales_notes".PHP_EOL
+            .implode(PHP_EOL, $csvobjects);
+$csv = str_replace(" ;", ";", $csv);
+END OF OLD VERSION*/
+
+
+/* СТРУКТУРА ФАЙЛА YML
+<?xml version="1.0" encoding="UTF-8"?> - заголовок
+<yml_catalog date="2017-02-05 17:22"> - корневой элемент
+    <shop> - описание магазина (shop), предложений (offers) и акций (promos, gifts)
+        <name>Barbershop</name> - короткое название, как на сайте, не более 20 символов
+        <company>Tne Best inc.</company> - полное название компании, не публикуется
+        <url>http://best.seller.ru</url> - урл главной страницы магазина, не более 50 символов
+        <currencies> - список курсов валют магазина
+           <currency id="RUR" rate="1"/> - основная валюта (rate = 1)
+           <currency id="USD" rate="60"/> - цена по курсу пересчета price RUR/60
+           <currency id="USD" rate="CBRF" plus="3"/> - курс пересчета в баксы по ЦБРФ + 3%
+         </currencies>
+         <categories> - список категорий магазина
+           <category id="1">Бытовая техника</category> - обязательно выстраивать понятную структуру!
+           <category id="10" parentId="1">Мелкая техника для кухни</category>
+           <category id="101" parentId="10">Сэндвичницы и приборы для выпечки</category>
+           <category id="102" parentId="10">Мороженицы</category>
+         </categories>
+         <offers> - список предложений магазина
+            <offer id="111" type="" available="true" bid="80"> - id ....., available ....., bid .......
+            
+
+
+        </offers>
+
+
+
+    </shop>
+</yml_catalog>
+
+*/

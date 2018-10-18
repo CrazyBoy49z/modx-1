@@ -1,0 +1,62 @@
+это примерное содержимое файла, то, что приезжает на зелфильтр.
+формат яндекса позволяет еще много чего - промо, подарки итд
+
+
+<?xml version="1.0" encoding="UTF-8"?> - заголовок
+<yml_catalog date="2017-02-05 17:22"> - корневой элемент
+    <shop> - описание магазина (shop), предложений (offers) и акций (promos, gifts)
+        <name>Barbershop</name> - короткое название, как на сайте, не более 20 символов
+        <company>Tne Best inc.</company> - полное название компании, не публикуется
+        <url>http://best.seller.ru</url> - урл главной страницы магазина, не более 50 символов
+        <currencies> - список курсов валют магазина
+           <currency id="RUR" rate="1"/> - основная валюта (rate = 1)
+           <currency id="USD" rate="60"/> - цена по курсу пересчета price RUR/60
+           <currency id="USD" rate="CBRF" plus="3"/> - курс пересчета в баксы по ЦБРФ + 3%
+         </currencies>
+         <categories> - список категорий магазина
+           <category id="1">Бытовая техника</category> - обязательно выстраивать понятную структуру!
+           <category id="10" parentId="1">Мелкая техника для кухни</category>
+           <category id="101" parentId="10">Сэндвичницы и приборы для выпечки</category>
+           <category id="102" parentId="10">Мороженицы</category>
+         </categories>
+         <delivery-options> - условия доставки (также присутствует в описании каждого товара)
+                    <option cost="300" days="1" order-before="18"/> - Условия курьерской доставки товара по региону магазина (стоимость доставки (0 - бесплатно); срок доставки в рабочих днях (0 - на заказ); время, до которого нужно сделать заказ, чтобы получить его в этот срок.).
+                </delivery-options>
+         <offers> - список предложений магазина
+            <offer id="ххх" type="можно не указывать" available="true"> - id ....., available .....
+                <url>http://best.seller.ru.....</url> -URL страницы товара на сайте магазина.
+                <price>8990</price> - Актуальная цена товара
+                <model>asdasdfasdf</model> - название модели
+                <vendor>Brand</vendor>
+                <currencyId>RUR</currencyId>
+                <categoryId>102</categoryId>
+                <picture>http://best.seller.ru/img/model_12345.jpg</picture>
+                <store>false</store> - Возможность купить товар без предварительного заказа
+                <pickup>false</pickup> - Возможность самовывоза из пунктов выдачи
+                <delivery>true</delivery> - Возможность курьерской доставки по региону магазина
+                <delivery-options>
+                    <option cost="300" days="1" order-before="18"/> - Условия курьерской доставки товара по региону магазина (стоимость доставки (0 - бесплатно); срок доставки в рабочих днях (0 - на заказ); время, до которого нужно сделать заказ, чтобы получить его в этот срок.).
+                </delivery-options>
+                <name>Мороженица Brand 3811</name>
+                <description>
+                    <![CDATA[
+                    <h3>Мороженица </h3>
+                    <p>Это прибор, .... ингредиентов.</p>
+                    ]]>
+                </description>
+                <sales_notes>Необходима предоплата.</sales_notes> - варианты оплаты, акции и распродажи (50 символов)
+                <manufacturer_warranty>true</manufacturer_warranty> - Официальная гарантия производителя
+                <country_of_origin>Россия</country_of_origin>
+
+
+
+        </offers>
+
+
+
+    </shop>
+</yml_catalog>
+
+
+currencyId; available; store; pickup; delivery; manufacturer_warranty; country_of_origin;
+RUR;         true;     false; false;  true;      true;                  Россия;

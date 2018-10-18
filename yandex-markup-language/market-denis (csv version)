@@ -1,0 +1,129 @@
+начальный файл, выводит прайс-лист в формате csv 
+
+
+if($_COOKIE['shiptorauth'] == 'zelzelzel' || $_POST['login'] == 'zelzelzel') setcookie("shiptorauth", "zelzelzel", time()+60*60*24*10);
+else die("<form method=\"POST\"><input name=\"login\" /><input type=\"submit\" /></form>");
+
+function pre($content = false, $var_dump = false, $return = false){
+    ob_start();
+    echo "<pre>";
+    if($content)
+    {
+        if(is_array($content))
+        {
+            if($var_dump)
+            {
+                var_dump($content);
+            }
+            else
+            {
+                print_r($content);
+            }
+        }
+        else
+        {
+            var_dump($content);
+        }
+        echo "</pre>";
+    }
+    if($return)
+    {
+        return ob_get_clean();
+    }
+    else
+    {
+        echo ob_get_clean();
+    }
+}
+
+$objects = array();
+$tvid1 = 1;
+$tvid2 = 7;
+$tvid3 = 8;
+$tvid4 = 12;
+$tvid5 = 31;
+$tvid6 = 29;
+$sql = "SELECT c.`id`, c.`parent`, c.`uri`, c.`introtext`, c.`pagetitle`, t1.`value` as `img`, t2.`value` as `price`, t3.`value` as `priceold`, t4.`value` as `brand`, t5.`value` as `market`, t6.`value` as `gift` FROM `modx_site_content` c
+LEFT JOIN `modx_site_content` p ON p.`id` = c.`parent`
+LEFT JOIN `modx_site_tmplvar_contentvalues` t1 ON t1.`contentid` = c.`id` AND t1.`tmplvarid` = '".$tvid1."'
+LEFT JOIN `modx_site_tmplvar_contentvalues` t2 ON t2.`contentid` = c.`id` AND t2.`tmplvarid` = '".$tvid2."'
+LEFT JOIN `modx_site_tmplvar_contentvalues` t3 ON t3.`contentid` = c.`id` AND t3.`tmplvarid` = '".$tvid3."'
+LEFT JOIN `modx_site_tmplvar_contentvalues` t4 ON t4.`contentid` = c.`id` AND t4.`tmplvarid` = '".$tvid4."'
+LEFT JOIN `modx_site_tmplvar_contentvalues` t5 ON t5.`contentid` = c.`id` AND t5.`tmplvarid` = '".$tvid5."'
+LEFT JOIN `modx_site_tmplvar_contentvalues` t6 ON t6.`contentid` = c.`id` AND t6.`tmplvarid` = '".$tvid6."'
+WHERE c.`template` = '5' AND c.`hidemenu`='0' AND c.`deleted`='0' AND c.`published`='1' AND p.`published` = '1'
+AND t5.`value` = 'Да'
+ORDER BY c.`parent`, c.`menuindex`";
+//echo $sql;
+$replaceFrom = array(";", "\r", "\n", "\t");
+$replaceTo = array(",", " ", " ", " ");
+foreach ($modx->query($sql) as $k => $row)
+{
+    foreach($row as $k2 => $row2)
+    {
+        if(is_numeric($k2))
+        {
+            unset($row[$k2]);
+        }
+        else
+        {
+            $row[$k2] = str_replace($replaceFrom, $replaceTo, $row[$k2]);
+        }
+    }
+    $row['filter'] = !in_array(35, $modx->getParentIds($row['id']));
+    $objects[$row['id']] = $row;
+}
+//pre($objects);
+
+
+$csvobjects = array();
+// $csvfile = "id;category;vendor;name;price;url;picture;description;currencyId;available;store;pickup;delivery;fee;sales_notes".PHP_EOL;
+foreach($objects as $id => $object){
+
+    $csvobject = '';
+    //$csvobject .= strlen($object['gift'])." | ".$object['gift']."\t\t\t\t\t\t\t\t\t\t".;
+    $csvobject .= $object['id'].";";
+    $csvobject .= str_replace("\"", "", $object['pagetitle']).";";
+
+    $csvobject .= ($object['filter']?
+    'Все товары/Бытовая техника/Техника для дома/Фильтры и умягчители для воды'
+    :
+    'Все товары/Бытовая техника/Техника для дома/Аксессуары/Аксессуары для водяных фильтров/Картриджи и сменные элементы для фильтров')
+    .";";
+    $csvobject .= $object['brand'].";";
+    $csvobject .= "NEWVALUE;";
+    $csvobject .= $object['price'].";";
+    //$csvobject .= "1".";"; // enable_auto_discounts
+    $csvobject .= "http://www.zelfilter.ru/".urlencode($object['uri']).";";
+    $csvobject .= "http://www.zelfilter.ru/".str_replace(array("%2F", "+", "%21"), array("/", "%20", "!"), urlencode($object['img'])).";";
+    /*
+    if(strlen($object['introtext']) > 145){
+        $goodlength = strpos($object['introtext'], " ", 140);
+        $description = substr($object['introtext'], 0, $goodlength);
+    }
+    */
+    $csvobject .= str_replace("\"", "", $object['introtext']).";";
+    $csvobject .= "RUR;true;false;false;true;true;Россия"; //{$fee};
+    $csvobject .= ";Оплата при получении. Самовывоз. Скидки. Подарки!";
+    //$csvobject .= ";".$object['gift'];
+    $csvobjects[] = $csvobject;
+}
+
+//$csv = "id;type;available;delivery;pickup;store;url;typePrefix;vendor;model;category;price;oldprice;currencyId;picture;description;param;sales_notes;manufacturer_warranty;country_of_origin;barcode;cpa;bid;cbid;fee".PHP_EOL
+// fee
+//sales_notes
+// enable_auto_discounts
+$csv = "id;name;category;vendor;xxx;price;url;picture;description;currencyId;available;store;pickup;delivery;manufacturer_warranty;country_of_origin;sales_notes".PHP_EOL
+            .implode(PHP_EOL, $csvobjects);
+$csv = str_replace(" ;", ";", $csv);
+
+
+$fp = fopen($_SERVER['DOCUMENT_ROOT'].'/market-denis.csv', "w+"); fwrite($fp, $csv); fclose($fp);
+echo '<head><title>Market generator</title></head><body><a href="/market-denis.csv" target="_blank">Скачать</a><br /><pre>'.$csv.'</pre></body>';
+
+die();
+
+
+
+
+
