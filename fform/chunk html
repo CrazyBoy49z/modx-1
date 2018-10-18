@@ -1,6 +1,6 @@
 <div id="pageform" class="services">
         <div class="inner_width">
-            <form class="pageform" data-action="ajax">
+            <form class="pageform" data-action="ajax" method="post">
                 <h2>Напишите нам и мы с Вами свяжемся</h2>
                 <input type='text' name='phone' class='required' />
                 
