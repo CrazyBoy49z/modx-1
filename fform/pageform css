@@ -1,0 +1,216 @@
+.services {
+    position: relative;
+    background: #aaa center top repeat-y;
+    padding: 63px 0 47px;
+    text-align: center;
+    z-index: 5;
+}
+.pageform a {
+    color: #666;
+}
+.pageform {
+    text-align: center;
+	min-height: 433px;
+}
+.pageform>h2 {
+    margin-bottom: 30px;
+}
+.inner_width {
+    position: relative;
+    max-width: 1170px;
+    min-width: 290px;
+    padding: 0 15px;
+    margin: 0 auto;
+}
+button, input {
+    overflow: visible;
+}
+button, input {
+    font-family: inherit;
+	font-size: 100%;
+	line-height: 1.15;
+	margin: 0;
+}
+.pageform>ul {
+    text-align: left;
+    list-style: none;
+}
+.pageform>ul:before, .pageform>ul:after {
+    content: " ";
+	display: table;
+    clear: both;
+}
+.pageform>ul>li:nth-child(1), .pageform>ul>li:nth-child(2) {
+    width: 49%;
+	float: left;
+}
+.pageform>ul>li {
+	margin-left: 0;
+}
+.pageform>ul>li {
+    margin-left: 0;
+}
+.pageform>ul>li .name {
+    font: 17px/21px proxima,sans-serif;
+	color: #36365f;
+}
+.pageform>ul>li .inp-wrap {
+    margin-top: 11px;
+}
+.pageform>ul>li .inp-wrap input[type="text"] {
+    height: 50px;
+}
+.pageform>ul>li .inp-wrap input[type="text"], .pageform>ul>li .inp-wrap textarea {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	outline: 0;
+	background: #fff;
+	font: 16px/22px proxima,sans-serif;
+	color: #262626;
+	padding-left: 18px;
+	padding-right: 18px;
+	width: 100%;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	-webkit-border-radius: 25px;
+	border-radius: 25px;
+	border: 1px solid #fff;
+}
+.pageform>ul>li:nth-child(2) {
+    margin-left: 2%;
+}
+.pageform>ul>li .inp-wrap input[type="text"] {
+    height: 50px;
+}
+.pageform>ul>li:nth-child(3) {
+    padding-top: 26px;
+	float: none;
+	clear: both;
+}
+.pageform>ul>li .inp-wrap textarea {
+    height: 162px;
+	width: 100%;
+	padding-top: 18px;
+	resize: none;
+}
+.services .inner_width {
+    z-index: 2;
+}
+
+.required {
+    display: none;
+}
+
+.name {
+    display: none;
+}
+
+a.more, button.more {
+    position: relative;
+    border: 1px solid #dadada;
+    height: 46px;
+    width: 216px;
+    padding-left: 30px;
+    padding-right: 10px;
+    font: 16px/46px 'proxima', sans-serif;
+    color: #36365f;
+    display: block;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 35px;
+    text-align: left;
+    transition: 0.4s all;
+}
+
+a.more:hover, button.more:hover {
+    border-color: #4040a0;
+    background: #4040a0;
+    color: #fff;
+}
+
+a.more:after, button.more:after {
+    content: ' ';
+    opacity: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #dadada url(../images/site/sprite-arrow.png) 0px 0px no-repeat;
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    transition: 0.4s all;
+}
+
+a.more:hover:after, button.more:hover:after {
+    opacity: 1;
+}
+
+.more_ar {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #4040a0;
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    transition: 0.4s all;
+}
+
+/*a.more:hover + a.more_ar {
+    background: #dadada;
+}
+*/
+.more_ar:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    background: url(../images/site/sprite.png) -17px -77px no-repeat;
+    display: block;
+    width: 8px;
+    height: 14px;
+    margin-top: -7px;
+    margin-left: -3px;
+}
+button.send {
+    border-color: #4040a0;
+    background: #4040a0;
+    color: #fff;
+    line-height: 21px;
+    width: auto;
+    cursor: pointer;
+}
+button.send:after {
+    content: ' ';
+    opacity: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #dadada url(../images/site/sprite-arrow.png) 0px 0px no-repeat;
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    transition: 0.4s all;
+}
+button.loading {
+    border-color: #dadada;
+    width: 174px;
+    background: #ffffff url(../images/ajax-loader-w.gif) center no-repeat;
+    transition: 0s all;
+}
+button.loading:hover {
+    border-color: #dadada;
+    width: 174px;
+    background: #ffffff url(../images/ajax-loader-w.gif) center no-repeat;
+}
+button.loading:after {
+    content: '';
+}
+button.loading:hover:after {
+    opacity: 0;
+}

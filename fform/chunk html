@@ -1,0 +1,45 @@
+<div id="pageform" class="services">
+        <div class="inner_width">
+            <form class="pageform" data-action="ajax">
+                <h2>Напишите нам и мы с Вами свяжемся</h2>
+                <input type='text' name='phone' class='required' />
+                
+                <ul>
+                  <li>
+                    <div class="name">Ваше имя</div>
+                    <div class="inp-wrap">
+                      <input type="text" name="name" placeholder="Ваше имя">
+                    </div>
+                  </li>
+                  <li>
+                    <div class="name">Ваш телефон</div>
+                    <div class="inp-wrap">
+                      <input type="text" name="nospam" placeholder="Ваш телефон или E-mail *">
+                    </div>
+                  </li>
+                  <li>
+                    <div class="name">Сообщение</div>
+                    <div class="inp-wrap">
+                      <textarea name="message" placeholder="Сообщение"></textarea>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="inp-wrap">
+                        <input type="checkbox" id="polite" name="polite" /> <label for="polite">СОГЛАСЕН С <a href="/[[~109]]" target="_blank">УСЛОВИЯМИ</a> ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ</label>
+                    </div>
+                  </li>
+                </ul>
+                <button class="more send" style="margin-top:40px; padding-right:50px;">Отправить<i class="more_ar"></i></button>
+    
+[[-
+                <label class="show-more  ">
+                    <span>Прикрепить файл</span>
+                    <input type="file" style="display: none" id="wform-vacancy-files" name="files" data-max_files="1" data-max_file_size="5" />
+                    <div class="preloader" data-for="wform-vacancy-files"></div>
+                </label>  
+]]
+                
+                <div class="clb"></div>
+            </form>
+        </div>
+    </div>

@@ -1,0 +1,258 @@
+$(document).ready(function() {
+    
+/*
+    $('form[data-action="ajax"]').on("click", 'label', function(){
+        if($(this).hasClass('uploaded'))
+        {
+            $(this).removeClass('uploaded')
+                    .children('span').html("Прикрепить файл")
+                    .siblings('input[type="file"]').val('')
+                    .siblings('.preloader').html('');
+            return false;
+        }
+    });
+    $('form[data-action="ajax"]').on("change", 'input[type="file"]', function(){
+        uploadFile(this);
+    });
+    
+*/
+    $('form[data-action="ajax"]').submit(function(){
+        if($(this).hasClass('loading'))
+        {
+            return false;
+        }
+        
+        var flNospam = $(this).find("input[name=nospam]");
+        var flName = $(this).find("input[name=name]");
+        var flPhone= $(this).find("input[name=phone]");
+        var flMessage = $(this).find("textarea[name=message]");
+        
+        var errors = false;
+        
+        if(flNospam.val() == "")
+        {
+            errors = true;
+            $(flNospam).on("keyup",function(){
+                if($(this).val() != "")
+                {
+                    $(this).parent().parent().removeClass("error");
+                    $(this).off("keyup");
+                }
+            }).focus().parent().parent().addClass("error");
+        }
+    
+        if($(this).find("input[type=checkbox][name=polite]").prop("checked") == false)
+        {
+            $(this).find("input[type=checkbox][name=polite]").on("change",function(){
+                if($(this).prop("checked"))
+                {
+                    $(this).parent().parent().removeClass("error");
+                    $(this).off("change");
+                }
+            }).parent().parent().addClass("error");
+            
+            if(!errors)
+            {
+                alert("Вы должны согласиться с условиями обработки персональных данных");
+                errors = true;
+            }
+            
+            return false;
+        }
+        
+        if(errors)
+        {
+            return false;
+        }
+        
+        var buttonHtml = $(this).find('button').addClass('loading').html();
+        $(this).find('button').html('');
+        //$(this).addClass('loading').find('button').html('').siblings('.notice').remove();
+        
+        var target = this;
+        
+        /*
+        var files = {};
+        $("input#wform-vacancy-files", this).siblings(".preloader").find('input').each(function(index, element){
+            files[index] = { path: $(element).val(), user_filename: $(element).attr('data-user_filename') };
+        });
+        */
+        
+        //block($(target), 1);
+        $.ajax({
+            url: "/form-ajax/?form",
+            method: "POST",
+            data: {
+                form: {
+                    type: "wform-pageform",
+                    name: "Вакансия"
+                },
+                fields: {
+                    nospam: {
+                        field: "",
+                        value: flNospam.val()
+                    },
+                    name: {
+                        field: "Ваше имя",
+                        value: flName.val()
+                    },
+                    phone: {
+                        field: "Phone",
+                        value: flPhone.val()
+                    },
+                    message: {
+                        field: "Message",
+                        value: flMessage.val()
+                    },
+                    politika: {
+                        value: true
+                    },
+                    /*
+                    files: {
+                        field: "Резюме",
+                        value: files
+                    }
+                    */
+        
+                }
+            }
+        }).always(function(response)
+        {
+            $(target).removeClass('loading').find('button').removeClass('loading').html(buttonHtml);
+         //   $(target).removeClass('loading').find('button')
+            
+            c(response.status);
+            
+            if(typeof(response.status) == 'undefined' || response.status != 'success')
+            {
+                var err = typeof(response.status) != 'undefined' && typeof(response.reason) != 'undefined' ? ('<br><br>Уточнение: ' + response.reason) : '';
+                $(target).append('<div class="notice" style="margin-top: 40px; color: #f00; font-size: 16px; color: #f00; font-weight: 600;">Ошибка! Ваше сообщение не отправлено.<br />Попробуйте еще раз или свяжитесь с администратором сайта.'+err+'</div>');
+                return;
+            }
+            
+            if(response.status == "success")
+            {
+                $('.pageform').after('<div class=\"formaccess\">Спасибо! Ваше сообщение успешно отправлено!<br>В ближайшее время менеджер свяжется с Вами!</div>');
+                $('.pageform').fadeTo(500,0).next('div').fadeIn();
+                
+                return;
+                
+                $(target).append('<div class="notice" style="margin-top: 40px; font-size: 16px; font-weight: 600; ">Спасибо! Ваше сообщение успешно отправлено!</div>');
+                
+                $(target).find("input:not(input[type=checkbox]), textarea").val("");
+                $(target).find("input[type=checkbox]").prop("checked", false);
+                
+                /*
+                $('label.upload', target).removeClass('uploaded')
+                                            .children('span').html("Прикрепить файл")
+                                            .siblings('input[type="file"]').val('')
+                                            .siblings('.preloader').html('');
+                */
+            }
+            
+            return;
+            
+            setTimeout(function(){
+                block($(target), 0);
+            }, 5000);
+            
+        });
+        
+        return false;
+    });
+});
+    
+function uploadFile(target){
+    
+    var files = target.files;
+    var container = $(target);
+    var field_id = container.attr("id");
+    
+    if($(".preloader[data-for="+field_id+"]").find(".file").length == $(target).attr("data-max_files"))
+    {
+        alert("Достигнуто максимальное количество файлов");
+        //$(container).replaceWith($(container).clone());
+        container.val('');
+        return;
+    }
+    
+    var max_file_size = $(target).attr("data-max_file_size");
+    if(files[0]['size'] > max_file_size * 1024*1024){
+        alert("Размер файла не может быть больше "+max_file_size+" Мб.");
+        container.val('');
+        return false;
+    };
+    
+    event.stopPropagation();
+    event.preventDefault();
+    
+    var xhr = new XMLHttpRequest();
+    
+    // обработчики успеха и ошибки
+    // если status == 200, то это успех, иначе ошибка
+    
+    var id = makeid();
+    
+    $(".preloader[data-for="+field_id+"]").append("<div class='file' id='"+id+"'><input type='hidden' data-systemField='1' data-user_filename='"+files[0]['name']+"' value=''/><div class='pr'></div><div class='cnt'><div class='progr'></div><span class='fn'>"+files[0]['name']+"</span><span class='del'></span></div></div>")
+    //<img src='/template/modules/ff/images/file.png'/>
+    
+    xhr.upload.onprogress = function(event) {
+        var current = Math.ceil(event.loaded * 100 / event.total);
+        $("#"+id).find(".progr").css("width", current+"%");
+    }
+    
+    xhr.onload = xhr.onerror = function() {
+        
+        container.val('');
+        
+        if (this.status == 200) {
+            response = JSON.parse(this.response);
+            
+            if(response.status != "success")
+            {
+                alert(response.reason);
+                $(".preloader[data-for="+field_id+"] #"+id).remove();
+            }
+            else
+            {
+                $("#"+id).find("input").val(response.file);
+                if(typeof(response.preview) != "undefined")
+                {
+                    $("#"+id).find(".pr").children("img").attr("src", response.preview);
+                }
+                $("#"+id).find(".progr").fadeOut("fast");
+                container.siblings('span').html('Удалить').parent().addClass('uploaded');
+                c(container)
+            }
+            
+        } 
+        else 
+        {                
+            console.log("error " + this.status);                
+        }
+        
+        $(container).replaceWith($(container).clone());
+    };
+    
+    xhr.open("POST", '/form-ajax?upload&field_id='+field_id, true);
+    
+    xhr.setRequestHeader("ajax", "true");
+    
+    var data = new FormData();
+    $.each( files, function( key, value ){
+        data.append( key, value );
+    });
+    
+    xhr.send(data);
+};
+
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
