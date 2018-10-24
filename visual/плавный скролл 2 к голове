@@ -12,30 +12,53 @@ $('#toTop').click(function() {
 
 
 #toTop {
-	position: fixed;
-	right: 50px;
-	bottom: 50px;
-	width: 70px;
-	height: 70px;
-	background-color: #2C708C;
-	-webkit-border-radius: 50%;
-	border-radius: 50%;
-	cursor: pointer;
-	-webkit-transition: opacity .3s ease,display .1s ease;
-	-o-transition: opacity .3s ease,display .1s ease;
-	transition: opacity .3s ease,display .1s ease;
-	opacity: .5;
-	text-align: center;
-	padding: 25px 0;
-	z-index: 200;
-	display: none;
+    position: fixed;
+    right: 50px;
+    bottom: 50px;
+    width: 70px;
+   /* height: 70px;*/
+    background-color: #2C708C;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-transition: opacity .3s ease, display .1s ease;
+    -o-transition: opacity .3s ease, display .1s ease;
+    transition: opacity .3s ease, display .1s ease;
+    opacity: .5;
+    text-align: center;
+    padding: 25px 0;
+    z-index: 200;
+    display: none;
 }
+
+@media screen and (max-width: 1023px) {
+    #toTop {
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+        padding: 17px 0;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    #toTop {
+        display: none !important;
+    }
+}
+
+#toTop:hover {
+    opacity: 1;
+}
+
 #toTop i {
-	display: block;
-	color: #fff;
-	-webkit-transform: rotate(-90deg);
-	-ms-transform: rotate(-90deg);
-	transform: rotate(-90deg);
+    display: block;
+    color: #ffffff;
+    -webkit-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+[class^="icon-"]:before, [class*=" icon-"]:before {
+    width: auto!important;
 }
 .icon-arrow-up:before {
 	content: '\e800';
@@ -57,3 +80,4 @@ $('#toTop').click(function() {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+</style>
