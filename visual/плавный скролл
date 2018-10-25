@@ -4,8 +4,6 @@
 
 
 
-
-
 $(document).ready(function() {
    $("a.topLink").click(function() {
       $("html, body").animate({
